@@ -1,4 +1,4 @@
 # Safar-Thesis
 Process website for MFA Design Technology Thesis Studio.
 
-Overview of the project. 
+[Details](https://github.com/sings257/Safar-Thesis/wiki) of the project. 
