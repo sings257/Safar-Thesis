@@ -13,10 +13,12 @@ class TableViewCell: UITableViewCell {
     @IBOutlet var lineView: UIView!
     @IBOutlet var addressLabel: UILabel!
     @IBOutlet var placeLabel: UILabel!
-    @IBOutlet var crowdLabel: UILabel!
-    @IBOutlet var crowdDot: UIView!
     @IBOutlet var tagImage: UIImageView!
-    
+    var latPlace : String!
+    var longPlace : String!
+    var numLabel : String!
+    var aboutPlace : String!
+    var imageName : String!
     override func awakeFromNib() {
         super.awakeFromNib()
         self.selectionStyle = UITableViewCellSelectionStyle.none

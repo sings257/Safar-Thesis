@@ -7,44 +7,96 @@
 //
 
 import UIKit
+import Firebase
+import FirebaseDatabase
+
+
+struct barsStruct{
+    let name : String!
+    let address : String!
+    let image : String!
+    let number2 : String!
+    let about : String!
+    let lat : String!
+    let long : String!
+    
+}
 
 class TableViewController: UITableViewController {
-//    @IBOutlet var navButton: UIButton!
+
+//    let data = Data()
+    var nameToPass:String!
+    var imageToPass:UIImage!
+    var numToPass: String!
+    var aboutToPass : String!
+    var addToPass : String!
+    var latToPass : String!
+    var longToPass : String!
+    var imageNameToPass : String!
+    var addedPlace:String!
     
-    @IBOutlet weak var navButton2: UIButton!
-    let data = Data()
+    var bars = [barsStruct]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        let ref = FIRDatabase.database().reference()
+        
+        
+        ref.child("Food").queryOrderedByKey().observe(.childAdded, with: { snapshot in
+            
+            
+            
+            
+
+            self.tableView.reloadData()
+            
+            
+        })
+
         self.tableView.rowHeight = 90.0
-        let backButton = UIBarButtonItem(title: "", style: UIBarButtonItemStyle.plain, target: navigationController, action: nil)
-        navigationItem.leftBarButtonItem = backButton
-        tableView.contentInset = UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
+       
+            
+            
+        
+     
+
         
         let longpress = UILongPressGestureRecognizer(target: self, action: #selector(TableViewController.longPressGestureRecognized(_:)))
         tableView.addGestureRecognizer(longpress)
         
-        navButton2.setImage(UIImage(named:"dropdown"), for: UIControlState.normal)
-        navButton2.imageEdgeInsets = UIEdgeInsets(top: 8,left: 125,bottom: 6,right: 8)
-        navButton2.titleEdgeInsets = UIEdgeInsets(top: 0,left: -10,bottom: 0,right: 14)
-        navButton2.setTitle("New York", for: UIControlState.normal)
-        navButton2.tintColor = UIColor(red: 77/255, green: 51/255, blue: 215/255, alpha: 1.0)
-     
+        let image = UIImage(named: "back_arrow")
+        
+        
+        
+        let backButton = UIBarButtonItem.init(title: " ", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.back(sender:)))
+        backButton.image = image
+        UIBarButtonItem.appearance().setBackButtonBackgroundImage(image, for: .normal, barMetrics: .default)
+        
+        self.navigationItem.setLeftBarButton(backButton, animated: true)
+        createNewButton.removeFromSuperview()
         
 
+    }
+    
+    func back(sender: UIBarButtonItem) {
+        
+        _ = navigationController?.popViewController(animated: true)
     }
 
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            data.places.remove(at: indexPath.row)
+            bars.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
         }
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return data.places.count
+    return bars.count
     }
+    
+    
+    
     func longPressGestureRecognized(_ gestureRecognizer: UIGestureRecognizer) {
         let longPress = gestureRecognizer as! UILongPressGestureRecognizer
         let state = longPress.state
@@ -107,7 +159,7 @@ class TableViewController: UITableViewController {
             center.y = locationInView.y
             My.cellSnapshot!.center = center
             if ((indexPath != nil) && (indexPath != Path.initialIndexPath) && (indexPath?.row != 0)) {
-                swap(&data.places[indexPath!.row], &data.places[Path.initialIndexPath!.row])
+                swap(&bars[indexPath!.row], &bars[Path.initialIndexPath!.row])
                 tableView.moveRow(at: Path.initialIndexPath!, to: indexPath!)
                 Path.initialIndexPath = indexPath
             }
@@ -149,34 +201,26 @@ class TableViewController: UITableViewController {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! TableViewCell
    
-        let entry = data.places[indexPath.row]
+//        let entry = bars[indexPath.row]
         
     
-        cell.crowdDot.layer.cornerRadius = 5.0
+
         
-        cell.tagImage.image = UIImage(named: entry.Tag)
-        cell.addressLabel.text = entry.Address
-        cell.placeLabel.text = entry.Location
-        cell.crowdLabel.text = entry.Crowd.uppercased()
+        cell.numLabel = bars[indexPath.row].number2
+        cell.aboutPlace = bars[indexPath.row].about
+        cell.imageName = bars[indexPath.row].image
+//        let latitude = NumberFormatter().number(from: bars[indexPath.item].lat)?.doubleValue
+//        let longitude = NumberFormatter().number(from: bars[indexPath.item].long)?.doubleValue
+        cell.placeLabel.text = bars[indexPath.row].name
+        cell.addressLabel.text = bars[indexPath.row].address
+        cell.tagImage?.image = UIImage(named: bars[indexPath.row].image)
+        cell.tagImage?.layer.masksToBounds = true
+
+        cell.tagImage?.layer.cornerRadius = 22.0
+        cell.latPlace = bars[indexPath.item].lat
+        cell.longPlace = bars[indexPath.item].long
         
-        let pink = UIColor(red: 239/255, green: 71/255, blue: 111/255, alpha: 1)
-        let green = UIColor(red: 97/255, green: 231/255, blue: 134/255, alpha: 1)
-        let yellow = UIColor(red: 255/255, green: 200/255, blue: 23/255, alpha: 1)
         
-        if cell.crowdLabel.text == "CURRENTLY VERY CROWDED" {
-            cell.crowdLabel.textColor = pink
-            cell.crowdDot.backgroundColor = pink
-        }
-        if cell.crowdLabel.text == "CURRENTLY NOT CROWDED" {
-            cell.crowdLabel.textColor = green
-            cell.crowdDot.backgroundColor = green
-        }
-        if cell.crowdLabel.text == "CURRENTLY MILDLY CROWDED" {
-            cell.crowdLabel.textColor = yellow
-            cell.crowdDot.backgroundColor = yellow
-        }
-     
-     
        
         
         cell.addressLabel.font = UIFont(name: "Avenir", size: 14.0)
@@ -186,28 +230,85 @@ class TableViewController: UITableViewController {
         return cell
     }
     
+
+        
+        
+        
+        
+        
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        //
+
+        if segue.identifier == "segue2" {
+            let detailVC: DetailViewController = segue.destination as! DetailViewController
+            //                detailVC.placeSelected = String(indexPath.item)
+            detailVC.placeSelected = nameToPass
+            detailVC.imageSelected = imageToPass
+            detailVC.numSelected = numToPass
+            detailVC.aboutSelected = aboutToPass
+            detailVC.addressSelected = addToPass
+            detailVC.newStruct = self.bars
+            detailVC.imageNameSelected = imageNameToPass
+            detailVC.longSelected = longToPass
+            detailVC.latSelected = latToPass
+            
+        }
+        if segue.identifier == "addseg2" {
+            //            let detailVC: CardViewController = segue.destination as! CardViewController
+            //                detailVC.placeSelected = String(indexPath.item)
+            
+            newStruct = self.bars
+            
+            
+            
+        }
+
+        
+    }
+    
+    
     
         
         
         
         
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        //        let indexPathVal = tableView.indexPathForSelectedRow!
+        let currentCell = tableView.cellForRow(at: indexPath) as! TableViewCell
+        nameToPass = currentCell.placeLabel?.text
+        imageToPass = currentCell.tagImage?.image
+        numToPass = currentCell.numLabel
+        aboutToPass = currentCell.aboutPlace
+        addToPass = currentCell.addressLabel?.text
+        imageNameToPass = currentCell.imageName
+        latToPass = currentCell.latPlace
+        longToPass = currentCell.longPlace
         
+        performSegue(withIdentifier: "segue2", sender: self)
         
+    }
         
+    @IBAction func addseg(_ segue:UIStoryboardSegue) {
+        if segue.identifier == "addseg" {
+            let detailVC: DetailViewController = segue.source as! DetailViewController
+            self.bars = detailVC.newStruct
+            self.tableView.reloadData()
+        }
+    }
+    @IBAction func addseg3(_ segue:UIStoryboardSegue) {
+        if segue.identifier == "addseg3" {
+            //            let detailVC: CardViewController = segue.source as! CardViewController
+            self.bars = newStruct
+            self.tableView.reloadData()
+        }
+    }
     
-        
-        
-        
-        
-        
-        
-        
-        
         
         
         
         
     }
+
 
 
 
